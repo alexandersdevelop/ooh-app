@@ -1,0 +1,846 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	{% load staticfiles %}
+	<title>Starlink OOH</title>
+	<meta charset="utf-8">
+	<base target="_blank">
+	<link rel="icon" href="{% static 'ooh/png/favicon.png' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'ooh/style.css' %}">
+	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+	<script type="text/javascript" src="{% static 'ooh/js/base.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/mergearrays.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/cities.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/exportcsv.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/tablesort.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/jquery-3.3.1.min.js' %}"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCNy8bR7xSg235n7IZkzWhPofFq_XAfZj0&sCensor=false&libraries=geometry"></script>
+</head>
+<body>
+	<div class="header is_stuck" style="position: fixed;top: 0px;width: 100%;">
+		<nav class="navbar top-navbar navbar-expand-md navbar-light">
+			<div class="navbar-header">
+                    <a class="navbar-brand">
+                        <b><img src="{% static 'ooh/png/icon.jpg' %}" alt="homepage" class="dark-logo" style="width: 40px;height: 40px;"></b>
+                    </a>
+					<b>OOH Выбор сторон</b>
+            </div>
+		</nav>
+	</div>
+			
+
+	<nav id="menuVertical">
+		<ul>		
+			<li class="nav-devider"></li>
+			<li style="padding-top: 25px;">
+				<a><div class="img_n"><img src="{% static 'ooh/png/city.png' %}"></div>
+					<span><select class="select" id="regions" name="region_select" onchange="change()">
+					</select></span>
+				</a>			
+			</li>
+			
+			<dl class="dropdown1"> 
+			  
+				<dt>
+				<a class="dropfilter1">
+				  <div class="img_n"><img src="{% static 'ooh/png/billboard.png' %}"></div>
+				  <span class="hida">Форматы</span>    
+				  <p class="multiSel"></p>  
+				</a>
+				</dt>
+			  
+				<dd>
+					<div class="mutliSelect">
+						<ul id = "formatschecklist">
+						</ul>
+					</div>
+				</dd>
+
+			</dl>
+			
+			<dl class="dropdown2"> 
+			  
+				<dt>
+				<a class="dropfilter2">
+				  <div class="img_n"><img src="{% static 'ooh/png/calendar.png' %}"></div>
+				  <span class="hida">Доборы</span>    
+				  <p class="multiSel"></p>  
+				</a>
+				</dt>
+			  
+				<dd>
+					<div class="mutliSelect">
+						<ul id = "addschecklist">
+						</ul>
+					</div>
+				</dd>
+
+			</dl>	
+			
+			<dl class="dropdown3"> 
+			  
+				<dt>
+				<a class="dropfilter3">
+				  <div class="img_n"><img src="{% static 'ooh/png/status.png' %}"></div>
+				  <span class="hida">Статус</span>    
+				  <p class="multiSel"></p>  
+				</a>
+				</dt>
+			  
+				<dd>
+					<div class="mutliSelect">
+						<ul id = "statuschecklist">
+						<li><input type="checkbox" class="statuscheckbox" name="statusfilter" value="1">Выбрано</li>
+						<li><input type="checkbox" class="statuscheckbox" name="statusfilter" value="0">Не выбрано</li>
+						</ul>
+					</div>
+				</dd>
+
+			</dl>				
+
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/path-a-to-b.png' %}"></div>
+					<span><select class="select" id="side" name="side_select" onchange="change()">
+						<option value="Расположение сторон">Расположение</option>
+						<option value="A">A</option>
+						<option value="B">B</option>
+						<option value="C">С</option>
+					</select></span>
+				</a>
+			</li>
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/text-documents.png' %}"></div><span>Min GRPs <input class="text-input" id="mingrps" type="text" name="GRPs" onchange="change()"></span></a></li>			
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/budget.png' %}"></div><span>Cost <=<input class="text-input" id="maxcost" type="text" name="cost" onchange="change()"></span></a></li>		
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/store.png' %}"></div><div class="checkbox-2">Объекты<input type="checkbox" id="check_all1" onclick="addclientMarker()"></div></a></li>				
+			<li><a id="savechanges"><div class="img_n"><img src="{% static 'ooh/png/disk.png' %}"></div><span>Сохранить</span></a></li>
+		</ul>
+	</nav>
+	
+	<div class="menu">
+		<div class="article-1">
+
+			<div class="panel-green">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka1.png' %}">
+				<div class="green-number" id="count">
+					0
+				</div>
+				<div class="green-words">
+					Выбрано сторон
+				</div>
+			</div>
+
+
+			<div class="panel-red">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka2.png' %}">
+				<div class="red-number" id="sumgrp">
+					0
+				</div>
+				<div class="red-words">
+					GRP's в день
+				</div>
+			</div>
+
+
+			<div class="panel-blue">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka3.png' %}">
+				<div class="blue-number" id="sumbudget">
+					0
+				</div>
+				<div class="blue-words">
+					Бюджет / млн.р.
+				</div>
+			</div>
+
+
+			<div class="panel-yellow">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka4.png' %}">
+				<div class="yellow-number" id="ashare">
+					0%
+				</div>
+				<div class="yellow-words">
+					Доля сторон А
+				</div>
+			</div>
+
+		</div>
+		
+		<div style="clear: both;"></div>
+		
+		<div class="article-2">	
+			
+			<div class="table-text">
+				<p>Для выбора сторон нажмите галочку в последнем столбце. <br> Cторона появится на карте и будет учтена в данных, приведенных выше.</p>
+			</div>
+			<div class="checkbox-1">
+				<button id="check_all" style ="margin-bottom: 5px;">Отметить все</button>
+				<button id="uncheck_all" style ="margin-bottom: 5px;">Снять все</button>
+
+			</div>			
+			<!--<div class="checkbox-1">
+				<button id="check_all" style ="margin-bottom: 5px;">Отметить все</button>
+				<button id="uncheck_all" style ="margin-bottom: 5px;">Снять все</button>
+				<button id="clearhistory" style ="margin-bottom: 5px;/*margin-left: 30px*/;" onclick="clearlocalstorage()">Очистить историю</button>
+			</div>-->
+					
+			<div class="table-table">	
+				<table class="sort">
+				  <thead>
+					<tr>
+						<td>#</td>
+						<td>Адрес</td>
+						<td>Формат</td>
+						<td>Сторона</td>
+						<td>GRP</td>
+						<td>Цена</td>
+						<td>Дата добора</td>	
+						<td>Статус</td>
+						<th>Выбрать</th>
+					</tr>
+				  </thead>
+				  <tbody id="table">
+				  </tbody>
+				</table>
+			</div>
+			
+		</div>
+		
+		<div class="right-side">
+			<div class="map-map" id="map"></div>
+			<img class="img_map" src="{% static 'ooh/png/Color_legend.png' %}">
+		</div>
+	</div>
+		
+		
+	</div>
+	<div style="clear: both;"></div>
+
+	<div class="load" style="text-align: center; z-index: 30; width: 100%; height: 100%; opacity: 0.5; position:fixed; display:none; background-color:#4f5a6e">
+		<img style="padding-top: 20%;" src="{% static 'ooh/png/load.gif' %}">
+	</div>
+	<footer class="footer">
+		© 2018 All rights reserved. Template designed by
+			<a href ="https://www.starlinkrussia.ru/">Starlink</a>
+	</footer>
+	<script>
+		var paraminit = {{ list | safe }}	
+	</script>
+	<script>
+		var param = paraminit
+
+		/*
+		var compare = localStorage.param ? JSON.parse(localStorage.param) : []
+		if (compare.length == 0) {
+			var param = paraminit;
+			localStorage.param = JSON.stringify(param);
+		} else {
+			var param = localStorage.param ? JSON.parse(localStorage.param) : []
+		};
+		*/
+		window.onload = open;	
+		
+		var test = [];
+		var test2 = [];
+		var test3 = [];
+		var gmarkers1 = [];
+		var gmarkers2 = [];
+		var finalparam = [];
+		var mapOptions = {
+		};
+		var center = new google.maps.LatLng();
+		var infowindow = new google.maps.InfoWindow({
+		  content: '',
+		  maxWidth: 430,
+		  minWidth: 430
+		});
+		
+		function change() {
+			gmarkers1 = [];
+			initialize(),
+			tablebutton(),
+			selectAllChecked()
+		};
+		
+		function open() {
+			regionslist(),
+			formatslist(),
+			addslist(),
+			document.getElementById("mingrps").value = "0",
+			initialize(),
+			checkAllstatus(),
+			$(".dropfilter3").click();
+			$(".allformats").click(),
+			$(".alladds").click(),
+			selectAllChecked()
+		};
+
+	/*подтверждение закрытия страницы*/
+	
+		window.onbeforeunload = function() {
+		return "Hey, you're leaving the site. Bye!"; //текст не играет роли, не отображается браузером
+	};
+		
+	/*изменить булевый парметр при клике*/	
+		function changearray() {
+			i2 = this.value
+			for (var i = 0; i < param.length; i++) {
+				var j = param[i].indexOf(Number(i2));
+				if (j == 1) {
+					if ( this.checked ) {
+						param[i][14] = 1;
+					} else {
+						param[i][14] = 0;};};};
+		};
+		
+		/* очистка локально хранилища
+		function clearlocalstorage() {
+			var sure = confirm("Нажмите ОК, если Вы хотите вернуться к исходной версии. Внесенные ранее изменения не сохранятся.");
+			if (sure == true) {
+				localStorage.clear();
+				location.reload();
+			}
+		};
+		*/
+		
+		/*возврат уникальных знчений*/
+		function uniqueVal(value, index, self) { 
+			return self.indexOf(value) === index;
+		};
+		
+		/*формирование выпадающего списка с уникальными элементами*/
+		function regionslist() {
+			var regions = [] //создаем одномерный массив с первыми элементами исходного
+			for (var i=0; i < param.length; i++) {
+			  regions.push(param[i][2]);
+			};
+			var regionslist = regions.filter(uniqueVal); //оставляем уникальные элементы (регионы)
+			regionslist.sort()
+			document.getElementById('regions').innerHTML = '' //очистить содержимое			
+			var list = document.getElementById('regions'),
+			  item = document.createElement('option');
+			for (var i = 0; i < regionslist.length; i++) {
+			  item.innerHTML = regionslist[i];
+			  list.appendChild(item.cloneNode(true));
+			};
+		};
+		
+		function formatslist() {
+			var formats = [] //создаем одномерный массив с первыми элементами исходного
+			for (var i=0; i < param.length; i++) {
+			  formats.push(param[i][7]);
+			};
+			var formatslist = formats.filter(uniqueVal); //оставляем уникальные элементы (форматы)
+			formatslist.sort()
+			document.getElementById('formatschecklist').innerHTML = '' //очистить содержимое			
+			$("#formatschecklist").append("<li><input type='checkbox' class='allformats' id='allformats' value='Все форматы' onclick='checkAllformats(this)'/>Все форматы</li>");
+			for (var i = 0; i < formatslist.length; i++) {
+				 $("#formatschecklist").append("<li><input type='checkbox' class='formatcheckbox' name='formatsfilter' value='" + formatslist[i] +"' />" + formatslist[i] +"</li>")
+			};
+			//$("#allformats").click();
+
+			$(".dropfilter1").click();
+		};
+					
+		function addslist() {
+			var adds = [] //создаем одномерный массив с первыми элементами исходного
+			for (var i=0; i < param.length; i++) {
+			  adds.push(param[i][10]);
+			};
+			var addslist = adds.filter(uniqueVal); //оставляем уникальные элементы (доборы)
+			document.getElementById('addschecklist').innerHTML = '' //очистить содержимое			
+			$("#addschecklist").append("<li><input type='checkbox' class='alladds' id='alladds' value='Все наборы' onclick='checkAlladds(this)'/>Все наборы</li>");
+			for (var i = 0; i < addslist.length; i++) {
+				 $("#addschecklist").append("<li><input type='checkbox' class='addcheckbox' name='addssfilter' value='" + addslist[i] +"' />" + addslist[i] +"</li>")
+			};
+			//$("#allformats").click();
+
+			$(".dropfilter2").click();		
+		};		
+		
+		function tablebutton() {
+			document.getElementById('table').innerHTML = '' //очистить содержимое
+			i2=document.getElementById('regions').value;
+			i4=document.getElementById('mingrps').value.replace(',','.');
+			i5=document.getElementById('side').value;
+			
+			if (document.getElementById('maxcost').value.replace(',','.') == '') {
+				i6=999999999
+			} else {
+				i6=document.getElementById('maxcost').value.replace(',','.');
+			};
+			
+			var table = document.getElementById('table');
+			for (var i = 0, L = param.length; i < L; i++) {
+				marker = param[i][7];
+				marker2 = param[i][10];
+				marker3 = param[i][14];
+				var j2 = param[i].indexOf(i2);
+				var j5 = param[i].indexOf(i5);
+
+				if (i5 == "Расположение сторон") {
+					if (in_array(marker, test) != -1 && in_array(marker2, test2) != -1 && in_array(marker3, test3) != -1 && j2 == 2 && Number(param[i][6].replace(',','.')) >= i4 && Number(param[i][11]) <= i6) {
+					    createtable(i)
+					};
+				} else {
+					if (in_array(marker, test) != -1 && in_array(marker2, test2) != -1 && in_array(marker3, test3) != -1 && j2 == 2 && Number(param[i][6].replace(',','.')) >= i4 && Number(param[i][11]) <= i6 && j5 != -1) {
+					    createtable(i)					
+					};
+				};
+			table.setAttribute("border", "2px");
+			};
+		};
+		
+		function createtable(i) {
+			var tr = document.createElement('tr'); //создаем tr-ку
+			tr.id = "id" + String(param[i][1]);
+			tr.classname = "table_row";
+			//Заполняем tr-ку td-шками:
+			var j = [1, 3, 7, 5, 6, 11, 10, 13];
+			j.forEach(function(item, k, j) {
+				var td = document.createElement('td'); //создаем td-шку
+				td.innerHTML = param[i][item]; //пишем в нее текст
+				tr.onclick = rowclick;
+				tr.appendChild(td); //добавляем созданную td-шку в конец tr-ки
+			});
+						
+			var tdc = document.createElement('td'); // ячейки для чекбокса
+			var cb = document.createElement('input'); // чекбоксы
+			cb.type = "checkbox";
+			cb.name = "filter";
+			cb.className = "check";
+			cb.value = String(param[i][1]);
+			cb.onchange = selectAllChecked;
+			cb.onclick = changearray;
+			if (param[i][14] == 1){
+				cb.checked = true;
+			} else if (param[i][14] == 0) {
+				cb.checked = false;
+			}
+			tdc.appendChild(cb);
+			tr.appendChild(tdc);
+			table.appendChild(tr); //добавляем созданную tr-ку в конец таблицы
+		};		
+
+		//Function to init map
+		function initialize() {
+		  i2=document.getElementById('regions').value;
+		  for (var k = 0; k < citiescoord.length; k++) {
+			var j2 = citiescoord[k].indexOf(i2);
+			if (j2 == 0) {
+				var center = new google.maps.LatLng(citiescoord[k][1], citiescoord[k][2]);
+			};
+		  };
+		  var mapOptions = {
+			zoom: 11,
+			gestureHandling: 'greedy',
+			center: center,
+			mapTypeId: 'roadmap',
+		 };
+
+		  map = new google.maps.Map(document.getElementById('map'), mapOptions);
+		  i4=document.getElementById('mingrps').value.replace(',','.');
+		  i5=document.getElementById('side').value;
+		  if (document.getElementById('maxcost').value.replace(',','.') == '') {
+			i6=999999999
+		  } else {
+			i6=document.getElementById('maxcost').value.replace(',','.');
+		  }
+	  	  		  
+		  for (i = 0; i < param.length; i++) {
+			    i2=document.getElementById('regions').value;
+				var j = param[i].indexOf(i2);
+				var j5 = param[i].indexOf(i5);
+				
+				if (i5 == "Расположение сторон") {
+					if (j == 2 && Number(param[i][6].replace(',','.')) >= i4 && Number(param[i][11]) <= i6) {
+						addMarker(param[i])
+
+					}
+				} else {
+					if (j == 2 && Number(param[i][6].replace(',','.')) >= i4 && Number(param[i][11]) <= i6 && j5 != -1) {
+						addMarker(param[i])
+
+					}
+				}
+			}
+		}
+		//Function to add client marker to map		
+		function addclientMarker() {
+			
+			if (document.getElementById('check_all1').checked == true) {
+				for (i = 0; i < clientmark.length; i++) {
+					var pos = new google.maps.LatLng(Number(clientmark[i][1].replace(',','.')), Number(clientmark[i][0].replace(',','.')));
+					markerImage = "{% static 'ooh/png/client.png' %}";
+			
+					marker1 = new google.maps.Marker({
+						icon: markerImage,
+						position: pos,
+						map: map
+					});
+					
+					gmarkers2.push(marker1)
+				};
+			} else { 
+				for(i =0; i< gmarkers2.length; i++){
+					 gmarkers2[i].setMap(null);
+				}	
+			}
+		};
+			
+		//Function to add marker to map
+		function addMarker(marker) {
+			var pos = new google.maps.LatLng(Number(param[i][9].replace(',','.')), Number(param[i][8].replace(',','.')));
+			var title = marker[7];
+			var addsign = marker[10];
+			var statussign = marker[13];
+			var yesorno = marker[14];
+			var tip = marker[1];
+			url = encodeURI(marker[12]);
+			var content = '<div id="mapinfowindow">#' + marker[1] + '<br>' + marker[7] +'<br>' + marker[3] +'<br>' + '<a href=' + url + ' target="_blank">Посмотреть фото</a><br><div>';
+			var markerImage;
+
+			if (param[14] == 1) {
+
+			markerImage = "{% static 'ooh/png/circle-red.png' %}";
+			} else if (param[14] == 0 && param[13] == 'Не выбрано') {
+				markerImage = "{% static 'ooh/png/circle-green.png' %}";
+			} else if (param[14] == 0 && param[13] == 'Добор'){
+				markerImage = "{% static 'ooh/png/circle-blue.png' %}";
+			} else if (param[14] == 0 && param[13] == 'Выбрано'){
+				markerImage = "{% static 'ooh/png/circle-green.png' %}";
+			}
+			marker1 = new google.maps.Marker({
+				icon: markerImage,
+			    position: pos,
+				title: title,
+				tip: tip,
+				map: map,
+				addsign: addsign,
+				statussign: statussign,
+				yesorno: yesorno
+				
+			});
+
+			marker1['infowindow'] = new google.maps.InfoWindow({
+            content: content
+			});
+
+			gmarkers1.push(marker1)
+			// Marker click listener
+
+			google.maps.event.addListener(marker1, 'click', (function(marker1, content) {
+				return function() {
+					infowindow.setContent(content);
+					infowindow.open(map, marker1);
+
+					//Перемещение строки в начало таблицы, подсветка				
+					$("#id" + marker1.tip + "").insertBefore('tr[id]:first');
+					$("#id" + marker1.tip + "")
+					.css("background", "#42db7c");
+					setTimeout(function () {
+						$("#id" + marker1.tip + "").css("background-color", "");
+					}, 2000);
+				}
+			})(marker1, content));
+
+
+		}
+
+		var selectAllChecked = function() {
+		    var checkedPlace = [] 
+			checkedPlace.length = 0;
+		    var allCheckedElem = document.getElementsByName('filter');
+		    for (var i = 0; i < allCheckedElem.length; i++) {
+			    if (allCheckedElem[i].checked == true) {
+			    checkedPlace.push(allCheckedElem[i].value)//creating array of checked items
+				}
+		    }
+			plitka(checkedPlace);
+		    filterChecker(checkedPlace)//passing to function for updating markers
+		}
+
+		var filterChecker = function(tip) {
+		    for (i = 0; i < gmarkers1.length; i++) {
+			    marker = gmarkers1[i];
+				formatter = marker.title;
+				addter = marker.addsign;
+				statuster = marker.statussign;
+				yesornoer = marker.yesorno
+			    if (in_array(this.marker.tip, tip) != -1) {
+			        marker.setVisible(true);
+					marker.setIcon("{% static 'ooh/png/circle-red.png' %}");					
+				} else if (in_array(formatter, test) != -1 && in_array(addter, test2) != -1 && in_array(yesornoer, test3) != -1) {
+					if (statuster == 'Не выбрано') {
+						marker.setIcon("{% static 'ooh/png/circle-green.png' %}")
+					} else if (statuster == 'Добор'){
+						marker.setIcon("{% static 'ooh/png/circle-blue.png' %}")								
+					} else if (statuster == 'Выбрано'){
+						marker.setIcon("{% static 'ooh/png/circle-green.png' %}")								
+					}					
+				} else {
+					marker.setVisible(false);
+				}
+			}
+		}
+		function in_array(needle, haystack) {
+		    var found = 0;
+		    for (var i = 0, len = haystack.length; i < len; i++) {
+				if (haystack[i] == needle) return i;
+				found++;
+		    }
+		    return -1;
+		}
+		
+		function rowclick () {
+			i2 = Number((this.id).replace("id", ""));
+			for (var i = 0; i < gmarkers1.length; i++) {
+				marker = gmarkers1[i];
+				if (marker.tip == i2) {
+					marker.setAnimation(google.maps.Animation.BOUNCE);
+					map.setCenter(marker.getPosition());
+					var marker2 = marker;
+					infowindow.setContent(marker2.infowindow.content);
+					infowindow.open(map, marker2);
+
+					map.setCenter(marker.getPosition());		
+					setTimeout(function () {
+						marker2.setAnimation();
+					}, 2000);
+				};
+			};
+
+		}
+		
+		function plitka(checkedPlace) {
+			//кол-во сторон
+			document.getElementById('count').innerHTML = checkedPlace.length;
+						
+			//сумма GRP
+			finalparam.length = 0;
+			var sumgrp = 0;
+			for(var i = 0; i < checkedPlace.length; i++){
+				j = Number(checkedPlace[i]);			
+				for (var k = 0; k < param.length; k++) {
+					var j2 = param[k].indexOf(j);
+					if (j2 == 1) {
+						finalparam.push(param[k]);
+					}				
+				}
+			}
+			for(var i = 0; i < finalparam.length; i++){
+				sumgrp += Number(finalparam[i][6].replace(',','.'));
+				}		
+			document.getElementById('sumgrp').innerHTML = (Math.round(sumgrp*100)/100).toFixed(1);
+			
+			//сумма бюджет
+			var sumbudget = 0;
+			for(var i = 0; i < finalparam.length; i++){
+				sumbudget += Number(finalparam[i][11].replace(',','.'));
+				}
+			roundsumbudget = (Math.round(sumbudget*100)/100);
+			document.getElementById('sumbudget').innerHTML = (roundsumbudget/1000000).toFixed(1);			
+			
+			//Доля сторон A			
+			var Asides = [];
+			var Bsides = [];
+			var Csides = [];
+			var Ashare = 0;
+			
+			for(var i = 0; i < finalparam.length; i++){
+				if (finalparam[i][5] == "A") {
+				Asides.push(finalparam[i][5]);
+				} else if (finalparam[i][5] == "В" || finalparam[i][5] == "B" ) {
+				Bsides.push(finalparam[i][5]);
+				} else if (finalparam[i][5] == "C" || finalparam[i][5] == "C" ) {
+				Csides.push(finalparam[i][5]);
+				}
+			}
+			if (Bsides.length == 0 && Asides.length == 0) {
+				document.getElementById('ashare').innerHTML = 0 + "%";
+				} else {
+				Ashare = Asides.length / (Asides.length + Bsides.length + Csides.length) * 100
+				document.getElementById('ashare').innerHTML = (Math.round(Ashare*10)/10) + "%";}
+						
+		}
+		$(document).ready(function(){ 
+			$("#check_all").click(function(){
+				var allCheckedElem = document.getElementsByName('filter');
+			    for (var i = 0; i < allCheckedElem.length; i++) {
+					if (allCheckedElem[i].checked == false) {
+						allCheckedElem[i].click();
+					};
+				};				
+				infowindow.close();
+				
+			});
+		    $("#uncheck_all").click(function(){
+				var allCheckedElem = document.getElementsByName('filter');
+				for (var i = 0; i < allCheckedElem.length; i++) {
+					if (allCheckedElem[i].checked == true) {
+						allCheckedElem[i].click(); 
+					};
+				};
+				infowindow.close();	
+		    });
+			$('.allformats').click(function(){
+			    change();
+			});
+			
+			$('.alladds').click(function(){
+			    change();
+			});			
+		});
+		
+		function dropdowncheck() {
+			var allCheckedElem = document.getElementsByName('formatsfilter');
+			for (var i = 0; i < allCheckedElem.length; i++) {
+				if (allCheckedElem[i].checked == false) {
+					$('.allformats').prop('checked', false);
+				};
+			};
+			var allCheckedElem = document.getElementsByName('addssfilter');
+			for (var i = 0; i < allCheckedElem.length; i++) {
+				if (allCheckedElem[i].checked == false) {
+					$('.alladds').prop('checked', false);
+				};
+			};			
+		}
+			
+		/*$(".dropdown1 dd li input").on('change', function () {
+			alert('qq');
+			console.log('alo');
+			var allCheckedElem = document.getElementsByName('formatsfilter');
+			for (var i = 0; i < allCheckedElem.length; i++) {
+				if (allCheckedElem[i].checked == false) {
+					$('.allformats').prop('checked', false);
+				};
+			};			
+		});*/
+
+		//Функции для работы фильтров чекбоксов
+		$(".dropdown1 dt a").on('click', function () {
+			$(".dropdown1 dd ul").slideToggle('fast');
+		});
+
+		$(".dropdown1 dd ul li a").on('change', function () {
+			$(".dropdown1 dd ul").hide();
+		});
+
+		function getSelectedValue(id) {
+			return $("#" + id).find(".dropdown1 dt a span.value").html();
+		}
+
+		$(".dropdown1,.dropdown2,.dropdown3").bind('change', function (e) {
+			createarray();
+			gmarkers1 = [];
+			initialize(),
+			selectAllChecked(),
+			dropdowncheck()
+		});
+
+		function createarray() {
+			test.length  = 0;
+			var allCheckedElem = $('input[class=formatcheckbox]');
+				for (var i = 0; i < allCheckedElem.length; i++) {
+					if (allCheckedElem[i].checked == true) {
+						test.push(allCheckedElem[i].value)
+					}	
+				}
+			test2.length  = 0;
+			var allCheckedElem = $('input[class=addcheckbox]');
+				for (var i = 0; i < allCheckedElem.length; i++) {
+					if (allCheckedElem[i].checked == true) {
+						test2.push(allCheckedElem[i].value)
+					}	
+				}
+			test3.length  = 0;
+			var allCheckedElem = $('input[class=statuscheckbox]');
+				for (var i = 0; i < allCheckedElem.length; i++) {
+					if (allCheckedElem[i].checked == true) {
+						test3.push(allCheckedElem[i].value)
+					}	
+				}
+			tablebutton(test, test2, test3);			
+		}
+		
+		function checkAllformats(obj) {
+		    'use strict';
+		    var items = document.getElementsByName('formatsfilter'), 
+				len, i;
+			for (i = 0, len = items.length; i < len; i += 1) {
+				if (items.item(i).type && items.item(i).type === "checkbox") {          
+					if (obj.checked) {
+						items.item(i).checked = true;
+					} else {
+						items.item(i).checked = false;
+					}       
+				}
+			}
+		}
+
+		$(".dropdown2 dt a").on('click', function () {
+			$(".dropdown2 dd ul").slideToggle('fast');
+		});
+
+		$(".dropdown2 dd ul li a").on('click', function () {
+			$(".dropdown2 dd ul").hide();
+		});
+
+		function getSelectedValue(id) {
+			return $("#" + id).find(".dropdown2 dt a span.value").html();
+		}
+
+		function checkAlladds(obj) {
+		    'use strict';
+		    var items = document.getElementsByName('addssfilter'), 
+			    len, i;
+			for (i = 0, len = items.length; i < len; i += 1) {
+				if (items.item(i).type && items.item(i).type === "checkbox") {          
+					if (obj.checked) {
+						items.item(i).checked = true;
+						} else {
+							items.item(i).checked = false;
+						}       
+					}
+				}
+		}
+			
+			
+		$(".dropdown3 dt a").on('click', function () {
+			$(".dropdown3 dd ul").slideToggle('fast');
+		});
+
+		$(".dropdown3 dd ul li a").on('click', function () {
+			$(".dropdown2 dd ul").hide();
+		});
+
+		function getSelectedValue(id) {
+			return $("#" + id).find(".dropdown3 dt a span.value").html();
+		}	
+
+		function checkAllstatus() {
+		    'use strict';
+		    var items = document.getElementsByName('statusfilter'), 
+			    len, i;
+			for (i = 0, len = items.length; i < len; i += 1) {
+				if (items.item(i).type && items.item(i).type === "checkbox") {          
+					items.item(i).checked = true;
+				}
+			}
+		}
+		$("#savechanges").on('click', function () {
+			$(".load").css('display', 'block');
+            $.ajax({
+                 type:"POST",
+                 url:"save/save_changes/",
+                 data: {
+                        'data': JSON.stringify(param)
+                        },
+                 success: function (result) {
+        				$(".load").css('display', 'none');
+    					},
+            });
+
+		});
+	</script>	
+	
+	
+</body>
+</html>

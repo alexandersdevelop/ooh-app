@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	{% load staticfiles %}
+	<title>Starlink Навигатор</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="{% static 'ooh/style.css' %}">
+	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+	<script type="text/javascript" src="{% static 'ooh/js/base.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/mergearrays.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/cities.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/exportcsv.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/tablesort.js' %}"></script>
+	<script type="text/javascript" src="{% static 'ooh/js/jquery-3.3.1.min.js' %}"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCNy8bR7xSg235n7IZkzWhPofFq_XAfZj0&sCensor=false&libraries=geometry"></script>
+</head>
+<body>
+	<div class="header is_stuck" style="position: fixed;top: 0px;width: 100%;">
+		<nav class="navbar top-navbar navbar-expand-md navbar-light">
+			<div class="navbar-header">
+                    <a class="navbar-brand">
+                        <b><img src="{% static 'ooh/png/icon.jpg' %}" alt="homepage" class="dark-logo" style="width: 40px;height: 40px;"></b>
+                    </a>
+					<b>OOH Navigator</b>
+            </div>
+			<div class="navbar-collapse">
+				<button id="clearhistory" onclick="clearlocalstorage()">Исходная версия</button>
+			</div>
+		</nav>
+	</div>
+			
+
+	<nav id="menuVertical">
+		<ul>		
+			<li class="nav-devider"></li>
+			<li style="padding-top: 25px;">
+				<a><div class="img_n"><img src="{% static 'ooh/png/office.png' %}"></div>
+					<span><select class="select" id="regions" name="region_select" onchange="change()">
+					</select></span>
+				</a>			
+			</li>
+			
+			<dl class="dropdown1"> 
+			  
+				<dt>
+				<a class="dropfilter1">
+				  <div class="img_n"><img src="{% static 'ooh/png/calendar.png' %}"></div>
+				  <span class="hida">Форматы</span>    
+				  <p class="multiSel"></p>  
+				</a>
+				</dt>
+			  
+				<dd>
+					<div class="mutliSelect">
+						<ul id = "formatschecklist">
+						</ul>
+					</div>
+				</dd>
+
+			</dl>
+			
+			<dl class="dropdown2"> 
+			  
+				<dt>
+				<a class="dropfilter2">
+				  <div class="img_n"><img src="{% static 'ooh/png/list.png' %}"></div>
+				  <span class="hida">Доборы</span>    
+				  <p class="multiSel"></p>  
+				</a>
+				</dt>
+			  
+				<dd>
+					<div class="mutliSelect">
+						<ul id = "addschecklist">
+						</ul>
+					</div>
+				</dd>
+
+			</dl>	
+			
+			<dl class="dropdown3"> 
+			  
+				<dt>
+				<a class="dropfilter3">
+				  <div class="img_n"><img src="{% static 'ooh/png/status.png' %}"></div>
+				  <span class="hida">Статус</span>    
+				  <p class="multiSel"></p>  
+				</a>
+				</dt>
+			  
+				<dd>
+					<div class="mutliSelect">
+						<ul id = "statuschecklist">
+						<li><input type="checkbox" class="statuscheckbox" name="statusfilter" value="1">Выбрано</li>
+						<li><input type="checkbox" class="statuscheckbox" name="statusfilter" value="0">Не выбрано</li>
+						</ul>
+					</div>
+				</dd>
+
+			</dl>				
+
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/path-a-to-b.png' %}"></div>
+					<span><select class="select" id="side" name="side_select" onchange="change()">
+						<option value="Расположение сторон">Расположение сторон</option>
+						<option value="A">A</option>
+						<option value="B">B</option>
+						<option value="C">С</option>
+					</select></span>
+				</a>
+			</li>
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/text-documents.png' %}"></div><span>Min GRPs <input class="text-input" id="mingrps" type="text" name="GRPs" onchange="change()"></span></a></li>			
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/budget.png' %}"></div><span>Cost <=<input class="text-input" id="maxcost" type="text" name="cost" onchange="change()"></span></a></li>		
+			<li><a><div class="img_n"><img src="{% static 'ooh/png/billboard.png' %}"></div><div class="checkbox-2">Объекты<input type="checkbox" id="check_all1" onclick="addclientMarker()"></div></a></li>				
+			<li><a onclick="exportToCsv()"><div class="img_n"><img src="{% static 'ooh/png/excel.png' %}"></div><span>Скачать</span></a></li>			
+		</ul>
+	</nav>
+	
+	<div class="menu">
+		<div class="article-1">
+
+			<div class="panel-green">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka1.png' %}">
+				<div class="green-number" id="count">
+					0
+				</div>
+				<div class="green-words">
+					Выбрано сторон
+				</div>
+			</div>
+
+
+			<div class="panel-red">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka2.png' %}">
+				<div class="red-number" id="sumgrp">
+					0
+				</div>
+				<div class="red-words">
+					GRP's в день
+				</div>
+			</div>
+
+
+			<div class="panel-blue">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka3.png' %}">
+				<div class="blue-number" id="sumbudget">
+					0
+				</div>
+				<div class="blue-words">
+					Бюджет / млн.р.
+				</div>
+			</div>
+
+
+			<div class="panel-yellow">
+				<img class="img_map" style="float: left" src="{% static 'ooh/png/plitka4.png' %}">
+				<div class="yellow-number" id="ashare">
+					0%
+				</div>
+				<div class="yellow-words">
+					Доля сторон А
+				</div>
+			</div>
+
+		</div>
+		
+		<div style="clear: both;"></div>
+		
+		<div class="article-2">	
+			
+			<div class="table-text">
+				<p>Для выбора сторон нажмите галочку в последнем столбце. <br> Cторона появится на карте и будет учтена в данных, приведенных выше.</p>
+			</div>
+			<div class="checkbox-1">
+				<button id="check_all" style ="margin-bottom: 5px;">Отметить все</button>
+				<button id="uncheck_all" style ="margin-bottom: 5px;">Снять все</button>
+
+			</div>			
+			<!--<div class="checkbox-1">
+				<button id="check_all" style ="margin-bottom: 5px;">Отметить все</button>
+				<button id="uncheck_all" style ="margin-bottom: 5px;">Снять все</button>
+				<button id="clearhistory" style ="margin-bottom: 5px;/*margin-left: 30px*/;" onclick="clearlocalstorage()">Очистить историю</button>
+			</div>-->
+					
+			<div class="table-table">	
+				<table class="sort">
+				  <thead>
+					<tr>
+						<td>#</td>
+						<td>Адрес</td>
+						<td>Формат</td>
+						<td>Сторона</td>
+						<td>GRP</td>
+						<td>Цена</td>
+						<td>Дата добора</td>	
+						<td>Статус</td>
+						<th>Выбрать</th>
+					</tr>
+				  </thead>
+				  <tbody id="table">
+				  </tbody>
+				</table>
+			</div>
+			
+		</div>
+		
+		<div class="right-side">
+			<div class="map-map" id="map"></div>
+			<img class="img_map" src="{% static 'ooh/png/Color_legend.png' %}">
+		</div>
+		
+		
+	</div>
+	<div style="clear: both;"></div>
+	
+	<footer class="footer">
+		© 2018 All rights reserved. Template designed by
+			<a href ="#">Starlink</a>
+	</footer>
+	<script>
+		var paraminit = {{ list | safe }}
+	</script>
+	<script>
+		var param = paraminit
+		window.onload = open()
+		
+		function open() {
+			regionslist(),
+			formatslist(),
+			addslist(),
+			document.getElementById("mingrps").value = "0"
+		}
+		
+		//функция возвратf уникальных знчений
+		function uniqueVal(value, index, self) { 
+			return self.indexOf(value) === index;
+		};
+		
+		//загрузка фильтра с регионами
+		function regionslist() {
+			var regions = [] //создаем одномерный массив с регионами
+			for (var i=0; i < param.length; i++) {
+			  regions.push(param[i][2]);
+			};
+			var regionslist = regions.filter(uniqueVal); //оставляем уникальные элементы регионы
+			document.getElementById('regions').innerHTML = ''		
+			var list = document.getElementById('regions'),
+			  item = document.createElement('option');
+			for (var i = 0; i < regionslist.length; i++) {
+			  item.innerHTML = regionslist[i];
+			  list.appendChild(item.cloneNode(true));
+			};
+		};
+		
+		//загрузка фильтра с форматами
+		function formatslist() {
+			var formats = [] //создаем одномерный массив с форматами
+			for (var i=0; i < param.length; i++) {
+			  formats.push(param[i][7]);
+			};
+			var formatslist = formats.filter(uniqueVal); //оставляем уникальные элементы (форматы)
+			document.getElementById('formatschecklist').innerHTML = ''			
+			$("#formatschecklist").append("<li><input type='checkbox' class='allformats' id='allformats' value='Все форматы' onclick='checkAllformats(this)'/>Все форматы</li>");
+			for (var i = 0; i < formatslist.length; i++) {
+				 $("#formatschecklist").append("<li><input type='checkbox' class='formatcheckbox' name='formatsfilter' value='" + formatslist[i] +"' />" + formatslist[i] +"</li>")
+			};
+			$(".dropfilter1").click();
+		};
+		
+		//загрузка фильтра с доборами
+		function addslist() {
+			var adds = [] //создаем одномерный массив с доборами
+			for (var i=0; i < param.length; i++) {
+			  adds.push(param[i][10]);
+			};
+			var addslist = adds.filter(uniqueVal); //оставляем уникальные элементы (доборы)
+			document.getElementById('addschecklist').innerHTML = ''		
+			$("#addschecklist").append("<li><input type='checkbox' class='alladds' id='alladds' value='Все наборы' onclick='checkAlladds(this)'/>Все наборы</li>");
+			for (var i = 0; i < addslist.length; i++) {
+				 $("#addschecklist").append("<li><input type='checkbox' class='addcheckbox' name='addssfilter' value='" + addslist[i] +"' />" + addslist[i] +"</li>")
+			};
+			$(".dropfilter2").click();		
+		};
+		
+		//создание таблицы
+		function tablebutton() {
+			document.getElementById('table').innerHTML = ''
+			i2=document.getElementById('regions').value;
+			i4=document.getElementById('mingrps').value.replace(',','.');
+			i5=document.getElementById('side').value;
+			
+			if (document.getElementById('maxcost').value.replace(',','.') == '') {
+				i6=999999999
+			} else {
+				i6=document.getElementById('maxcost').value.replace(',','.');
+			};
+			
+			var table = document.getElementById('table');
+			for (var i = 0, L = param.length; i < L; i++) {
+				marker = param[i][7];
+				marker2 = param[i][10];
+				marker3 = param[i][14];
+				var j2 = param[i].indexOf(i2);
+				var j5 = param[i].indexOf(i5);
+
+				if (i5 == "Расположение сторон") {
+					if (in_array(marker, test) != -1 && in_array(marker2, test2) != -1 && in_array(marker3, test3) != -1 && j2 == 2 && Number(param[i][6].replace(',','.')) >= i4 && Number(param[i][11]) <= i6) {
+					    createtable(i)
+					};
+				} else {
+					if (in_array(marker, test) != -1 && in_array(marker2, test2) != -1 && in_array(marker3, test3) != -1 && j2 == 2 && Number(param[i][6].replace(',','.')) >= i4 && Number(param[i][11]) <= i6 && j5 != -1) {
+					    createtable(i)					
+					};
+				};
+			table.setAttribute("border", "2px");
+			};
+		};
+		
+	</script>	
+	
+	
+</body>
+</html>
